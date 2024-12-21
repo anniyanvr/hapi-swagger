@@ -45,9 +45,7 @@ const xPropertiesRoutes = [
         payload: Joi.object({
           number: Joi.number().greater(10),
           string: Joi.string().alphanum(),
-          array: Joi.array()
-            .items(Joi.string())
-            .length(2)
+          array: Joi.array().items(Joi.string()).length(2)
         })
       }
     }
@@ -126,7 +124,7 @@ lab.experiment('builder', () => {
           type: 'string'
         }
       },
-      'Model1': {
+      Model1: {
         type: 'object',
         properties: {
           number: {
@@ -146,7 +144,7 @@ lab.experiment('builder', () => {
     expect(isValid).to.be.true();
   });
 
-  lab.test('xProperties : false', async () => {
+  lab.test('xProperties : true', async () => {
     const server = await Helper.createServer({ xProperties: true }, xPropertiesRoutes);
     const response = await server.inject({ method: 'GET', url: '/swagger.json' });
 
@@ -160,7 +158,7 @@ lab.experiment('builder', () => {
           type: 'string'
         }
       },
-      'Model1': {
+      Model1: {
         type: 'object',
         properties: {
           number: {
@@ -186,35 +184,46 @@ lab.experiment('builder', () => {
     expect(isValid).to.be.true();
   });
 
-  lab.test('reuseDefinitions : true', async () => {
-    const server = await Helper.createServer({ reuseDefinitions: true }, reuseModelsRoutes);
-    const response = await server.inject({ method: 'GET', url: '/swagger.json' });
+  lab.test(
+    'reuseDefinitions : true. It should not be reused, because of the exact definition, but a different label.',
+    async () => {
+      const server = await Helper.createServer({ reuseDefinitions: true }, reuseModelsRoutes);
+      const response = await server.inject({ method: 'GET', url: '/swagger.json' });
 
-    expect(response.result.definitions).to.equal({
-      a: {
-        type: 'object',
-        properties: {
-          a: {
-            type: 'string'
+      expect(response.result.definitions).to.equal({
+        a: {
+          type: 'object',
+          properties: {
+            a: {
+              type: 'string'
+            }
+          }
+        },
+        b: {
+          type: 'object',
+          properties: {
+            a: {
+              type: 'string'
+            }
+          }
+        },
+        Model1: {
+          type: 'object',
+          properties: {
+            a: {
+              $ref: '#/definitions/a'
+            },
+            b: {
+              $ref: '#/definitions/b'
+            }
           }
         }
-      },
-      'Model1': {
-        type: 'object',
-        properties: {
-          a: {
-            $ref: '#/definitions/a'
-          },
-          b: {
-            $ref: '#/definitions/a'
-          }
-        }
-      }
-    });
+      });
 
-    const isValid = await Validate.test(response.result);
-    expect(isValid).to.be.true();
-  });
+      const isValid = await Validate.test(response.result);
+      expect(isValid).to.be.true();
+    }
+  );
 
   lab.test('reuseDefinitions : false', async () => {
     const server = await Helper.createServer({ reuseDefinitions: false }, reuseModelsRoutes);
@@ -238,7 +247,7 @@ lab.experiment('builder', () => {
           }
         }
       },
-      'Model1': {
+      Model1: {
         type: 'object',
         properties: {
           a: {
@@ -287,21 +296,18 @@ lab.experiment('builder', () => {
 
     expect(response.result.paths['/test']).to.equal({
       get: {
-          operationId: 'getTest',
-          responses: {
-            default: {
-              description: 'Successful',
-              schema: {
-                type: 'string'
-              }
+        operationId: 'getTest',
+        responses: {
+          default: {
+            description: 'Successful',
+            schema: {
+              type: 'string'
             }
-          },
-          tags: [
-            'test'
-          ]
-        }
+          }
+        },
+        tags: ['test']
       }
-    );
+    });
     expect(response.result.paths['/test2']).to.equal(undefined);
     expect(response.result.paths['/not-part-of-api']).to.equal(undefined);
 
@@ -316,21 +322,18 @@ lab.experiment('builder', () => {
     expect(response.result.paths['/test']).to.equal(undefined);
     expect(response.result.paths['/test2']).to.equal({
       get: {
-          operationId: 'getTest2',
-          responses: {
-            default: {
-              description: 'Successful',
-              schema: {
-                type: 'string'
-              }
+        operationId: 'getTest2',
+        responses: {
+          default: {
+            description: 'Successful',
+            schema: {
+              type: 'string'
             }
-          },
-          tags: [
-            'test2'
-          ]
-        }
+          }
+        },
+        tags: ['test2']
       }
-    );
+    });
     expect(response.result.paths['/not-part-of-api']).to.equal(undefined);
 
     const isValid = await Validate.test(response.result);
@@ -343,8 +346,8 @@ lab.experiment('builder', () => {
   lab.before(async () => {
     const server = await Helper.createServer({ debug: true }, reuseModelsRoutes);
 
-    return new Promise(resolve => {
-      server.events.on('log', event => {
+    return new Promise((resolve) => {
+      server.events.on('log', (event) => {
         logs = event.tags;
         //console.log(event);
         if (event.data === 'PASSED - The swagger.json validation passed.') {
@@ -358,5 +361,31 @@ lab.experiment('builder', () => {
 
   lab.test('debug : true', () => {
     expect(logs).to.equal(['hapi-swagger', 'validation', 'info']);
+  });
+});
+
+lab.experiment('fix issue 711', () => {
+  lab.test('The description field is shown when an object is empty', async () => {
+    const routes = {
+      method: 'POST',
+      path: '/todo/{id}/',
+      options: {
+        handler: () => {},
+        description: 'Test',
+        notes: 'Test notes',
+        tags: ['api'],
+        validate: {
+          payload: Joi.object().description('MyDescription').label('MySchema')
+        }
+      }
+    };
+
+    const server = await Helper.createServer({ debug: true }, routes);
+    const response = await server.inject({ method: 'GET', url: '/swagger.json' });
+    expect(response.statusCode).to.equal(200);
+
+    const { MySchema } = response.result.definitions;
+    expect(MySchema).not.to.equal({ type: 'object' });
+    expect(MySchema).to.equal({ type: 'object', description: 'MyDescription' });
   });
 });

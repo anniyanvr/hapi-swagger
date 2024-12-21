@@ -3,22 +3,25 @@
 This is a [OpenAPI (aka Swagger)](https://openapis.org/) plug-in for [Hapi](https://hapi.dev/) When installed it will self document the API interface
 in a project.
 
-[![Maintainers Wanted](https://img.shields.io/badge/maintainers-wanted-red.svg?style=for-the-badge)](https://github.com/glennjones/hapi-swagger/issues/718)
-![GitHub Workflow Status](https://img.shields.io/github/workflow/status/glennjones/hapi-swagger/Node.js%20CI?style=for-the-badge)
+[![Maintainers Wanted](https://img.shields.io/badge/maintainers-wanted-red.svg?style=for-the-badge)](https://github.com/hapi-swagger/hapi-swagger/issues/718)
+![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/hapi-swagger/hapi-swagger/ci.yml?style=for-the-badge)
 [![npm downloads](https://img.shields.io/npm/dm/hapi-swagger.svg?style=for-the-badge)](https://www.npmjs.com/package/hapi-swagger)
-[![MIT license](http://img.shields.io/badge/license-MIT-blue.svg?style=for-the-badge)](https://raw.github.com/glennjones/hapi-swagger/master/license.txt)
+[![MIT license](http://img.shields.io/badge/license-MIT-blue.svg?style=for-the-badge)](https://raw.github.com/hapi-swagger/hapi-swagger/master/license.txt)
 
 ## Compatibility
 
-| Version | [Hapi](https://github.com/hapijs/hapi) | [Joi](https://github.com/sideway/joi) | Node   | Release Notes                                                 |
-| ------- | -------------------------------------- | ------------------------------------- | ------ | ------------------------------------------------------------- |
-| `14.x`  | `>=19.0.0 @hapi/hapi`                  | `>=17.0.0 joi`                        | `>=12` | [#680](https://github.com/glennjones/hapi-swagger/issues/680) |
-| `13.x`  | `>=19.0.0 @hapi/hapi`                  | `>=17.0.0 @hapi/joi`                  | `>=12` | [#660](https://github.com/glennjones/hapi-swagger/issues/660) |
-| `12.x`  | `>=19.0.0 @hapi/hapi`                  | `>=17.0.0 @hapi/joi`                  | `>=12` | [#644](https://github.com/glennjones/hapi-swagger/issues/644) |
-| `11.x`  | `>=18.4.0 @hapi/hapi`                  | `>=16.0.0 @hapi/joi`                  | `>=8`  | [#631](https://github.com/glennjones/hapi-swagger/issues/631) |
-| `10.x`  | `>=18.3.1 @hapi/hapi`                  | `>=14.0.0 @hapi/joi`                  | `>=8`  | [#587](https://github.com/glennjones/hapi-swagger/issues/587) |
-| `9.x`   | `>=17 hapi`                            | `<14.0.0`                             | `>=8`  | [#487](https://github.com/glennjones/hapi-swagger/issues/487) |
-| `7.x`   | `<17 hapi`                             | ???                                   | ???    | [#325](https://github.com/glennjones/hapi-swagger/issues/325) |
+| Version | [Hapi](https://github.com/hapijs/hapi) | [Joi](https://github.com/sideway/joi) | Node   | Release Notes                                                   |
+| ------- | -------------------------------------- | ------------------------------------- | ------ | --------------------------------------------------------------- |
+| `17.x`  | `>=20.0.0 @hapi/hapi`                  | `>=17.0.0 joi`                        | `>=16` | [Release](https://github.com/hapi-swagger/hapi-swagger/releases/tag/v17.0.0)                                                           |
+| `16.x`  | `>=20.0.0 @hapi/hapi`                  | `>=17.0.0 joi`                        | `>=14` | [#795](https://github.com/hapi-swagger/hapi-swagger/issues/795) |
+| `15.x`  | `>=20.0.0 @hapi/hapi`                  | `>=17.0.0 joi`                        | `>=14` | [#782](https://github.com/hapi-swagger/hapi-swagger/issues/782) |
+| `14.x`  | `>=19.0.0 @hapi/hapi`                  | `>=17.0.0 joi`                        | `>=12` | [#680](https://github.com/hapi-swagger/hapi-swagger/issues/680) |
+| `13.x`  | `>=19.0.0 @hapi/hapi`                  | `>=17.0.0 @hapi/joi`                  | `>=12` | [#660](https://github.com/hapi-swagger/hapi-swagger/issues/660) |
+| `12.x`  | `>=19.0.0 @hapi/hapi`                  | `>=17.0.0 @hapi/joi`                  | `>=12` | [#644](https://github.com/hapi-swagger/hapi-swagger/issues/644) |
+| `11.x`  | `>=18.4.0 @hapi/hapi`                  | `>=16.0.0 @hapi/joi`                  | `>=8`  | [#631](https://github.com/hapi-swagger/hapi-swagger/issues/631) |
+| `10.x`  | `>=18.3.1 @hapi/hapi`                  | `>=14.0.0 @hapi/joi`                  | `>=8`  | [#587](https://github.com/hapi-swagger/hapi-swagger/issues/587) |
+| `9.x`   | `>=17 hapi`                            | `<14.0.0`                             | `>=8`  | [#487](https://github.com/hapi-swagger/hapi-swagger/issues/487) |
+| `7.x`   | `<17 hapi`                             | ???                                   | ???    | [#325](https://github.com/hapi-swagger/hapi-swagger/issues/325) |
 
 ## Installation
 
@@ -28,7 +31,7 @@ You can add the module to your Hapi using npm:
 > npm install hapi-swagger --save
 ```
 
-**hapi-swagger** no longer bundles `joi` to fix [#648](https://github.com/glennjones/hapi-swagger/issues/648). Install **hapi-swagger** with peer dependencies using:
+**hapi-swagger** no longer bundles `joi` to fix [#648](https://github.com/hapi-swagger/hapi-swagger/issues/648). Install **hapi-swagger** with peer dependencies using:
 
 ```bash
 npx install-peerdeps hapi-swagger
@@ -49,7 +52,8 @@ content serving.
 
 ## Quick start
 
-In your Hapi apps main JavaScript file add the following code to created a Hapi `server` object. You will also add the routes for you API as describe on hapijs.com site.
+In your Hapi apps please check the main JavaScript file and add the following code to already created a Hapi `server` object.
+You will also add the routes for you API as describe on [hapi website](https://hapi.dev/).
 
 ```Javascript
 const Hapi = require('@hapi/hapi');
@@ -59,9 +63,9 @@ const HapiSwagger = require('hapi-swagger');
 const Pack = require('./package');
 
 (async () => {
-    const server = await new Hapi.Server({
-        host: 'localhost',
+    const server = Hapi.server({
         port: 3000,
+        host: 'localhost'
     });
 
     const swaggerOptions = {

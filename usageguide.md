@@ -126,10 +126,10 @@ validate: {
 }
 ```
 
-**NOTE: the plugin reuses "definition models" these describe each JSON object use by an API i.e. a "user". This feature
-was added to reduce the size of the JSON. The reuse of models can cause names to be reused as well. Please switch
-`options.reuseDefinitions` to `false` if you are naming your JOI objects. By default objects are named in a "Model #"
-format. To use the `label`, specify `options.definitionPrefix` as `useLabel`.**
+\*\*NOTE: the plugin reuses "definition models" these describe each JSON object use by an API i.e. a "user". This feature
+was added to reduce the size of the JSON. The plugin can reuse the model only if the labels match. Even if two routes have the same definition, but labels are not set, the plugin assumes that it is a different definition, the same if one definition has a label and another does not.
+
+By default, objects are named in a "Model #" format. To use the `label`, specify `options.definitionPrefix` as `useLabel`.\*\*
 
 ## Grouping endpoints by path or tags
 
@@ -214,14 +214,15 @@ const options = {
 };
 ```
 
-The groups are order in the same sequence you add them to the `tags` array in the plug-in options. You can enforce
-the order by name A-Z by switching the plugin `options.sortTags = 'name'`.
+In the schema tags are ordered in the same sequence you add them to the `tags` array in the plugin options.
+In the UI groups are sorted alphabetically by default. To have them ordered in the sequence defined in `tags` set
+the plugin option `sortTags = 'unsorted'`.
 
 ## Ordering the endpoints within groups
 
-The endpoints within the UI groups can be order with the property `options.sortEndpoints`, by default the are ordered
-A-Z using the `alpha` (path) information. Can also order them by `method`. Finally if you wish to enforce you own order then
-you added route option `order` to each endpoint and switch the plugin options to `options.sortEndpoints = 'ordered'`.
+The endpoints within the UI groups can be ordered with the property `options.sortEndpoints`, by default they are ordered
+A-Z using the `alpha` (path) information. You can also order them by `method`. Finally if you wish to enforce your own order
+then add the route option `order` to each endpoint and switch the plugin option `sortEndpoints = 'ordered'`.
 
 ```javascript
 {
@@ -239,6 +240,34 @@ you added route option `order` to each endpoint and switch the plugin options to
         }
     }
 }
+```
+
+If you have several endpoints in the same file and want to use the order in which they are defined, a simple trick is
+to use a counter variable that will increment automatically.
+
+```javascript
+let order = 0;
+
+const routes = [
+    {
+        method: 'GET',
+        path: '/petstore/{id}',
+        options: {
+            plugins: {
+                'hapi-swagger': { order: ++order }
+            }
+        }
+    },
+    {
+        method: 'GET',
+        path: '/store/{id}/address',
+        options: {
+            plugins: {
+                'hapi-swagger': { order: ++order }
+            }
+        }
+    }
+];
 ```
 
 ## Rewriting paths and groupings
@@ -604,7 +633,7 @@ be useful if your are using codegen tools against the JSON
 ## Debugging
 
 The plugin can validate its output against the OpenAPI(Swagger) specification. You can to this by setting the plugin option `options.debug` to `true`.
-The debug output is logged into the Hapi server object. You can view the logs by either install the `Good` plugin or by using `server.on`.
+The debug output is logged into the Hapi server object. You can view the logs by either installing a [logging plugin](https://hapi.dev/plugins/#logging) or by using `server.on`.
 
 There is a small example of the [`debug`](examples/debug.js) feature in the examples directory.
 
@@ -619,7 +648,7 @@ Not all the flexibility of Hapi and JOI can to ported over to the Swagger schema
 -   **`array.ordered(type)`** This allows for different typed items within an array. i.e. string or int.
 -   **`{name*}`** The path parameters with the `*` char are not supported, either is the `{name*3}` the pattern. This will mostly likely be added to the next version of OpenAPI spec.
 -   **`.allow( null )`** The current Swagger spec does not support `null`. This **maybe** added to the next version of OpenAPI spec.
--   **`payload: function (value, options, next) {next(null, value);}`** The use of custom functions to validate pramaters is not support beyond replacing them with an emtpy model call "Hidden Model".
+-   **`payload: function (value, options, next) {next(null, value);}`** The use of custom functions to validate pramaters is not support beyond replacing them with an empty model call "Hidden Model".
 -   **`Joi.date().format('yy-mm-dd')` ** The use of a `moment` pattern to format a date cannot be reproduced in Swagger
 -   **`Joi.date().min()` and `Joi.date().max()`** Minimum or maximum dates cannot be expressed in Swagger.
 

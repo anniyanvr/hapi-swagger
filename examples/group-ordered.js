@@ -1,4 +1,4 @@
-// `group.js` - how to use tag based grouping
+// `group-ordered.js` - how to use tag based grouping
 'use strict';
 
 const Blipp = require('blipp');
@@ -126,7 +126,7 @@ const ser = async () => {
     port: 3000
   });
 
-  // Blipp and Good - Needs updating for Hapi v17.x
+  // Blipp - Needs updating for Hapi v17.x
   await server.register([
     Inert,
     Vision,

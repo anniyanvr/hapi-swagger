@@ -17,7 +17,7 @@ lab.experiment('alternatives', () => {
         tags: ['api'],
         validate: {
           payload: Joi.alternatives()
-            .try(Joi.number(), Joi.string())
+            .try(Joi.number().meta({ title: 'a number' }), Joi.string().meta({ title: 'a string' }))
             .label('Alt')
         }
       }
@@ -90,9 +90,7 @@ lab.experiment('alternatives', () => {
         tags: ['api'],
         validate: {
           payload: Joi.object({
-            type: Joi.string()
-              .valid('string', 'number', 'image')
-              .label('Type'),
+            type: Joi.string().valid('string', 'number', 'image').label('Type'),
             data: Joi.alternatives()
               .conditional('type', { is: 'string', then: Joi.string() })
               .conditional('type', { is: 'number', then: Joi.number() })
@@ -122,12 +120,10 @@ lab.experiment('alternatives', () => {
         tags: ['api'],
         validate: {
           payload: Joi.object({
-            type: Joi.string()
-              .valid('string', 'number', 'image')
-              .label('Type'),
+            type: Joi.string().valid('string', 'number', 'image').label('Type'),
             key: Joi.string().when('category', {
               is: 'stuff',
-              then: Joi.forbidden() // https://github.com/glennjones/hapi-swagger/issues/338
+              then: Joi.forbidden() // https://github.com/hapi-swagger/hapi-swagger/issues/338
             }),
             data: Joi.alternatives()
               .conditional('type', { is: 'string', then: Joi.string() })
@@ -163,12 +159,23 @@ lab.experiment('alternatives', () => {
         },
         'x-alternatives': [
           {
-            type: 'number'
+            'x-meta': {
+              title: 'a number'
+            },
+            type: 'number',
+            title: 'a number'
           },
           {
-            type: 'string'
+            'x-meta': {
+              title: 'a string'
+            },
+            type: 'string',
+            title: 'a string'
           }
         ],
+        'x-meta': {
+          title: 'a number'
+        },
         name: 'body'
       }
     ]);
@@ -192,7 +199,7 @@ lab.experiment('alternatives', () => {
     ]);
 
     expect(response.result.paths['/store2/'].post.responses).to.equal({
-      '200': {
+      200: {
         schema: {
           $ref: '#/definitions/Alternative',
           'x-alternatives': [
@@ -222,8 +229,7 @@ lab.experiment('alternatives', () => {
       type: 'object',
       properties: {
         type: {
-          type: 'string',
-          enum: ['string', 'number', 'image']
+          $ref: '#/definitions/Type'
         },
         data: {
           type: 'string',
@@ -295,15 +301,25 @@ lab.experiment('alternatives', () => {
 
     expect(response.result.definitions).to.equal({
       Alternative: {
+        type: 'object',
         properties: {
           name: {
             type: 'string'
           }
         },
-        required: ['name'],
-        type: 'object'
+        required: ['name']
+      },
+      Alt: {
+        type: 'object',
+        properties: {
+          name: {
+            type: 'string'
+          }
+        },
+        required: ['name']
       },
       Dimensions: {
+        type: 'object',
         properties: {
           width: {
             type: 'number'
@@ -311,14 +327,17 @@ lab.experiment('alternatives', () => {
           height: {
             type: 'number'
           }
-        },
-        type: 'object'
+        }
       },
-      'Model1': {
+      Type: {
+        enum: ['string', 'number', 'image'],
+        type: 'string'
+      },
+      Model1: {
+        type: 'object',
         properties: {
           type: {
-            type: 'string',
-            enum: ['string', 'number', 'image']
+            $ref: '#/definitions/Type'
           },
           data: {
             type: 'string'
@@ -326,30 +345,170 @@ lab.experiment('alternatives', () => {
           extra: {
             $ref: '#/definitions/Dimensions'
           }
-        },
-        type: 'object'
+        }
       },
-      'Model2': {
+      Extra: {
+        type: 'object',
         properties: {
-          data: {
-            type: 'string'
+          width: {
+            type: 'number'
           },
-          extra: {
-            '$ref': '#/definitions/Dimensions'
+          height: {
+            type: 'number'
+          }
+        }
+      },
+      Model2: {
+        type: 'object',
+        properties: {
+          type: {
+            $ref: '#/definitions/Type'
           },
           key: {
             type: 'string'
           },
-          type: {
-            enum: [
-              'string',
-              'number',
-              'image'
-            ],
+          data: {
             type: 'string'
+          },
+          extra: {
+            $ref: '#/definitions/Extra'
+          }
+        }
+      }
+    });
+
+    // test full swagger document
+    const isValid = await Validate.test(response.result);
+    expect(isValid).to.be.true();
+  });
+
+  lab.test('OpenAPI v3.0', async () => {
+    const server = await Helper.createServer({ OAS: 'v3.0' }, routes);
+    const response = await server.inject({ method: 'GET', url: '/openapi.json' });
+
+    expect(response.statusCode).to.equal(200);
+
+    expect(response.result.paths['/store/'].post.requestBody).to.equal({
+      content: {
+        'application/json': {
+          schema: {
+            anyOf: [
+              {
+                type: 'number',
+                'x-meta': {
+                  title: 'a number'
+                },
+                title: 'a number'
+              },
+              { type: 'string', 'x-meta': { title: 'a string' }, title: 'a string' }
+            ]
+          }
+        }
+      }
+    });
+    expect(response.result.paths['/store2/'].post.requestBody).to.equal({
+      content: {
+        'application/json': {
+          schema: {
+            anyOf: [
+              {
+                $ref: '#/x-alt-definitions/alternative1'
+              },
+              {
+                $ref: '#/x-alt-definitions/alternative2'
+              }
+            ]
+          }
+        }
+      }
+    });
+    expect(response.result.paths['/store2/'].post.responses).to.equal({
+      200: {
+        content: {
+          'application/json': {
+            schema: {
+              anyOf: [
+                {
+                  $ref: '#/x-alt-definitions/alternative1'
+                },
+                {
+                  $ref: '#/x-alt-definitions/alternative2'
+                }
+              ]
+            }
           }
         },
-        type: 'object'
+        description: 'Successful'
+      }
+    });
+
+    expect(response.result.paths['/store4/'].post.requestBody).to.equal({
+      content: {
+        'application/json': {
+          schema: {
+            $ref: '#/components/schemas/Model1'
+          }
+        }
+      }
+    });
+
+    expect(response.result.components.schemas).to.equal({
+      Type: { type: 'string', enum: ['string', 'number', 'image'] },
+      Model1: {
+        type: 'object',
+        properties: {
+          type: { $ref: '#/components/schemas/Type' },
+          data: { anyOf: [{ type: 'string' }, { type: 'number' }, { type: 'string', 'x-format': { uri: true } }] },
+          extra: { anyOf: [{ $ref: '#/x-alt-definitions/Dimensions' }] }
+        }
+      },
+      Model2: {
+        type: 'object',
+        properties: {
+          type: { $ref: '#/components/schemas/Type' },
+          key: { type: 'string' },
+          data: {
+            anyOf: [
+              {
+                type: 'string'
+              },
+              { type: 'number' },
+              { type: 'string', 'x-format': { uri: true } }
+            ]
+          },
+          extra: { anyOf: [{ $ref: '#/x-alt-definitions/Extra' }] }
+        }
+      }
+    });
+
+    expect(response.result['x-alt-definitions']).to.equal({
+      alternative1: {
+        type: 'object',
+        properties: { name: { type: 'string' } },
+        required: ['name']
+      },
+      alternative2: {
+        type: 'object',
+        properties: { name: { type: 'number' } },
+        required: ['name']
+      },
+      Alt: {
+        type: 'object',
+        properties: { name: { type: 'string' } },
+        required: ['name']
+      },
+      Dimensions: {
+        type: 'object',
+        properties: { width: { type: 'number' }, height: { type: 'number' } }
+      },
+      Extra: {
+        type: 'object',
+        properties: { width: { type: 'number' }, height: { type: 'number' } }
+      },
+      Model1: {
+        type: 'object',
+        properties: { name: { type: 'number' } },
+        required: ['name']
       }
     });
 

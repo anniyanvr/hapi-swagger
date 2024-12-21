@@ -59,6 +59,78 @@ lab.experiment('dereference', () => {
     expect(isValid).to.be.true();
   });
 
+  lab.test('flatten with no references on OAS v3', async () => {
+    const swaggerOptions = {
+      deReference: true,
+      OAS: 'v3.0',
+      securityDefinitions: {
+        jwt: {
+          type: 'apiKey',
+          name: 'Authorization',
+          in: 'header'
+        }
+      }
+    };
+    const server = await Helper.createServer(swaggerOptions, routes);
+    const response = await server.inject({ method: 'GET', url: '/openapi.json' });
+    expect(response.result.components).to.equal({ securitySchemes: swaggerOptions.securityDefinitions });
+    expect(response.statusCode).to.equal(200);
+    expect(response.result.paths['/store/'].post.requestBody.content).to.equal({
+      'application/json': {
+        schema: {
+          properties: {
+            a: {
+              type: 'number'
+            },
+            b: {
+              type: 'number'
+            },
+            operator: {
+              type: 'string'
+            },
+            equals: {
+              type: 'number'
+            }
+          },
+          type: 'object'
+        }
+      }
+    });
+    const isValid = await Validate.test(response.result);
+    expect(isValid).to.be.true();
+  });
+
+  lab.test('flatten with no references (OpenAPI)', async () => {
+    const server = await Helper.createServer({ OAS: 'v3.0', deReference: true }, routes);
+    const response = await server.inject({ method: 'GET', url: '/openapi.json' });
+    expect(response.statusCode).to.equal(200);
+    expect(response.result.paths['/store/'].post.requestBody).to.equal({
+      content: {
+        'application/json': {
+          schema: {
+            properties: {
+              a: {
+                type: 'number'
+              },
+              b: {
+                type: 'number'
+              },
+              operator: {
+                type: 'string'
+              },
+              equals: {
+                type: 'number'
+              }
+            },
+            type: 'object'
+          }
+        }
+      }
+    });
+    const isValid = await Validate.test(response.result);
+    expect(isValid).to.be.true();
+  });
+
   lab.test('dereferences error', async () => {
     try {
       await Builder.dereference(null);

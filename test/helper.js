@@ -14,7 +14,6 @@ const helper = (module.exports = {});
  *
  * @param  {Object} swaggerOptions
  * @param  {Object} routes
- * @param  {Function} callback
  */
 helper.createServer = async (swaggerOptions, routes, serverOptions = {}) => {
   const server = new Hapi.Server(serverOptions);
@@ -186,7 +185,7 @@ helper.defaultAuthHandler = (request) => {
 /**
  * a validation function for bearer strategy
  *
- * @param  {String} token
+ * @param  {string} token
  * @param  {Function} callback
  */
 helper.validateBearer = (request, token) => ({
@@ -198,7 +197,8 @@ helper.validateBearer = (request, token) => ({
       username: 'glennjones',
       name: 'Glenn Jones',
       groups: ['admin', 'user']
-    }
+    },
+    scope: ['admin']
   }
 });
 
@@ -210,7 +210,7 @@ helper.validateBearer = (request, token) => ({
  * @param  {Object} request
  * @param  {Object} reply
  * @param  {Object} settings
- * @param  {Int} ttl
+ * @param  {number} ttl
  **/
 helper.replyWithJSON = async (_, res) => {
   const { payload } = await Wreck.read(res, { json: true });

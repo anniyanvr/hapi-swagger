@@ -6,12 +6,47 @@
   "configurations": [
     {
       "type": "node",
+      "name": "vscode-jest-tests.v2",
+      "request": "launch",
+      "program": "${workspaceFolder}/node_modules/.bin/jest",
+      "args": [
+        "--runInBand",
+        "--watchAll=false",
+        "--testNamePattern",
+        "${jest.testNamePattern}",
+        "--runTestsByPath",
+        "${jest.testFile}"
+      ],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "disableOptimisticBPs": true,
+      "windows": {
+        "program": "${workspaceFolder}/node_modules/jest/bin/jest"
+      }
+    },
+    {
+      "name": "attach",
+      "port": 9229,
+      "request": "attach",
+      "skipFiles": ["<node_internals>/**"],
+      "type": "node"
+    },
+    {
+      "type": "node",
       "request": "launch",
       "name": "start",
       "program": "${workspaceFolder}/examples/simple.js",
       "skipFiles": ["<node_internals>/**/*.js"],
-      "console": "integratedTerminal",
-      "disableOptimisticBPs": true
+      "console": "integratedTerminal"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "start openapi",
+      "program": "${workspaceFolder}/examples/simple-openapi",
+      "skipFiles": ["<node_internals>/**/*.js"],
+      "console": "integratedTerminal"
     },
     {
       "type": "node",
@@ -19,8 +54,7 @@
       "name": "start basic",
       "program": "${workspaceFolder}/examples/basic.js",
       "skipFiles": ["<node_internals>/**/*.js"],
-      "console": "integratedTerminal",
-      "disableOptimisticBPs": true
+      "console": "integratedTerminal"
     },
     {
       "type": "node",
@@ -28,8 +62,7 @@
       "name": "start jwt",
       "program": "${workspaceFolder}/examples/jwt.js",
       "skipFiles": ["<node_internals>/**/*.js"],
-      "console": "integratedTerminal",
-      "disableOptimisticBPs": true
+      "console": "integratedTerminal"
     },
     {
       "type": "node",
@@ -37,8 +70,7 @@
       "name": "start group ordered",
       "program": "${workspaceFolder}/examples/group-ordered.js",
       "skipFiles": ["<node_internals>/**/*.js"],
-      "console": "integratedTerminal",
-      "disableOptimisticBPs": true
+      "console": "integratedTerminal"
     },
     {
       "type": "node",
@@ -46,8 +78,7 @@
       "name": "start options",
       "program": "${workspaceFolder}/examples/options.js",
       "skipFiles": ["<node_internals>/**/*.js"],
-      "console": "integratedTerminal",
-      "disableOptimisticBPs": true
+      "console": "integratedTerminal"
     },
     {
       "type": "node",
@@ -57,8 +88,15 @@
       "args": ["-i", "${input:inputLabTestIdentifier}"],
       "console": "integratedTerminal",
       "skipFiles": ["<node_internals>/**/*.js"],
-      "disableOptimisticBPs": true,
       "sourceMaps": false
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "test custom swagger file",
+      "program": "${workspaceFolder}/examples/custom-swagger-file.js",
+      "skipFiles": ["<node_internals>/**/*.js"],
+      "console": "integratedTerminal"
     }
   ],
   "inputs": [

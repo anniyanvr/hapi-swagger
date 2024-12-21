@@ -609,8 +609,7 @@ lab.experiment('responses', () => {
         type: 'array',
         items: {
           $ref: '#/definitions/datapoint'
-        },
-        required: ['datapoint']
+        }
       }
     });
     const isValid = await Validate.test(response.result);
@@ -663,8 +662,7 @@ lab.experiment('responses', () => {
         type: 'array',
         items: {
           $ref: '#/definitions/datapoint'
-        },
-        required: ['datapoint']
+        }
       }
     });
     const isValid = await Validate.test(response.result);
@@ -849,22 +847,22 @@ lab.experiment('responses', () => {
               }
             },
             400: {
-              schema: {
-                $ref: '#/definitions/Model1'
-              },
-              description: '400 - Added from plugin-options'
-            },
-            404: {
-              description: '404 from response status object',
+              description: '400 - Added from plugin-options',
               schema: {
                 $ref: '#/definitions/Model1'
               }
             },
-            429: {
+            404: {
+              description: '404 from response status object',
               schema: {
-                $ref: '#/definitions/Model1'
-              },
-              description: 'Too Many Requests'
+                $ref: '#/definitions/Model4'
+              }
+            },
+            429: {
+              description: 'Too Many Requests',
+              schema: {
+                $ref: '#/definitions/Model3'
+              }
             },
             500: {
               description: '500 - Added from plugin-options'

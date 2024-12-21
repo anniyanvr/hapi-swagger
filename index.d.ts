@@ -1,4 +1,4 @@
-import { Plugin } from '@hapi/hapi';
+import { AuthSettings, Plugin } from '@hapi/hapi';
 
 declare module '@hapi/hapi' {
   // https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/hapi__hapi/index.d.ts#L97
@@ -51,19 +51,19 @@ declare namespace hapiswagger {
 
   type ExpandedType = 'none' | 'list' | 'full';
 
-  type SortTagsType = 'alpha';
+  type SortTagsType = 'alpha' | 'unsorted';
 
-  type SortEndpointsType = 'alpha' | 'method' | 'ordered';
+  type SortEndpointsType = 'alpha' | 'method' | 'ordered' | 'unsorted';
 
   type UiCompleteScriptObjectType = {
     src: string;
-  }
+  };
 
-  type UiCompleteScriptType = string | UiCompleteScriptObjectType
+  type UiCompleteScriptType = string | UiCompleteScriptObjectType;
 
   type ScopesType = {
     [scope: string]: string | any;
-  }
+  };
 
   type SecuritySchemeType = {
     /**
@@ -110,7 +110,7 @@ declare namespace hapiswagger {
      * Any property or object with a key starting with `x-*` is included in the Swagger definition (similar to `x-*` options in the `info` object)
      */
     [key: string]: any;
-  }
+  };
 
   /**
    * Lists the required security schemes to execute this operation. The object can have multiple security schemes declared in it which are all required (that is, there is a logical AND between the schemes)
@@ -217,14 +217,23 @@ declare namespace hapiswagger {
 
   interface RegisterOptions {
     /**
-     * The transfer protocol of the API ie `['http']`
+     * The transfer protocol of the API ie `['http']` (used only with OAS v2)
      */
     schemes?: string[];
 
     /**
-     * The host (name or IP) serving the API including port if any i.e. `localhost:8080`
+     * The host (name or IP) serving the API including port if any i.e. `localhost:8080` (used only with OAS v2)
      */
     host?: string;
+
+    /**
+     * An array of OpenAPI 3.0 server objects (used only with OAS v3)
+     */
+    servers?: {
+      url: string;
+      description?: string;
+      variables?: Record<string, { enum?: string[]; default: string; description: string }>;
+    }[];
 
     /**
      * Defines security strategy to use for plugin resources
@@ -280,7 +289,7 @@ declare namespace hapiswagger {
      * (tags) => !tags.includes('private')
      * ```
      */
-    routeTag?: string | ((tags: string[]) => boolean)
+    routeTag?: string | ((tags: string[]) => boolean);
 
     /**
      * How to create grouping of endpoints value either `path` or `tags`
@@ -304,6 +313,13 @@ declare namespace hapiswagger {
      * ```
      */
     tagsGroupingFilter?(tag: string): boolean;
+
+    /**
+     * A function used to format authentication details such as entity or scopes
+     *
+     * @param authSettings Hapi object containing the authentication settings
+     */
+    authAccessFormatter?(authSettings: AuthSettings['access']): string | undefined | null;
 
     /**
      * How payload parameters are displayed 'json' or 'form'
@@ -345,10 +361,25 @@ declare namespace hapiswagger {
     xProperties?: boolean;
 
     /**
-     * Reuse of definition models to save space
+     * Reuse of definition models to save space.
+     * Even if two routes have the same definition, but labels are not set, the plugin assumes that it is a different
+     * definition, the same if one definition has a label and another does not.
+     * To really reuse the definition model you need to keep the definition and labels the same.
      * @default: true
      */
     reuseDefinitions?: boolean;
+
+    /**
+     * Wildcard methods. Are used as custom methods for the route when the method is set to '*'
+     * @default: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']
+     */
+    wildcardMethods?: string[];
+
+    /**
+     * The swagger version to use.
+     * @default: 'v2'
+     */
+    OAS?: 'v2' | 'v3.0';
 
     /**
      * Dynamic naming convention. `default` or `useLabel`
@@ -428,13 +459,13 @@ declare namespace hapiswagger {
     expanded?: ExpandedType;
 
     /**
-     * Sort method for `tags` i.e. groups in UI.
+     * Sort method for `tags` i.e. groups in UI. Values include `alpha`, `unsorted`.
      * @default: 'alpha'
      */
     sortTags?: SortTagsType;
 
     /**
-     * Sort method for endpoints in UI. Values include `alpha`, `method`, `ordered`.
+     * Sort method for endpoints in UI. Values include `alpha`, `method`, `ordered`, `unsorted`.
      * @default: 'alpha'
      */
     sortEndpoints?: SortEndpointsType;
@@ -444,6 +475,12 @@ declare namespace hapiswagger {
      * @default: null
      */
     uiCompleteScript?: UiCompleteScriptType;
+
+    /**
+     * An object of options to be passed to Swagger UI.
+     * @default {}
+     */
+    uiOptions?: object;
 
     /**
      * Sets the external validating URL Can switch off by setting to `null`

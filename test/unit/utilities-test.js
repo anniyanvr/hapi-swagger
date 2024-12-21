@@ -114,8 +114,30 @@ lab.experiment('utilities', () => {
     expect(Utilities.findAndRenameKey(Helper.objWithNoOwnProperty(), 'x', 'y')).to.equal({});
   });
 
+  lab.test('first', () => {
+    expect(Utilities.first([])).to.equal(undefined);
+    expect(Utilities.first({})).to.equal(undefined);
+    expect(Utilities.first(['a', 'b'])).to.equal('a');
+  });
+
+  lab.test('sortFirstItem', () => {
+    expect(Utilities.sortFirstItem(['a', 'b'])).to.equal(['a', 'b']);
+
+    expect(Utilities.sortFirstItem(['b', 'a'], 'a')).to.equal(['a', 'b']);
+    expect(Utilities.sortFirstItem(['b', 'a'], 'b')).to.equal(['b', 'a']);
+
+    expect(Utilities.sortFirstItem(['b', 'a', 'c'], 'a')).to.equal(['a', 'b', 'c']);
+    expect(Utilities.sortFirstItem(['c', 'b', 'a'], 'a')).to.equal(['a', 'c', 'b']);
+
+    // Make sure that the function makes a deep copy of the input array and does not change the arguments
+    const input = ['b', 'a'];
+    const copyOfInput =  ['b', 'a'];
+    expect(Utilities.sortFirstItem(input, 'a')).to.equal(['a', 'b']);
+    expect(input).to.equal(copyOfInput);
+  });
+
   lab.test('replaceValue', () => {
-    expect(Utilities.replaceValue(['a', 'b'], 'a', 'c')).to.equal(['b', 'c']);
+    expect(Utilities.replaceValue(['a', 'b'], 'a', 'c')).to.equal(['c', 'b']);
     expect(Utilities.replaceValue(['a', 'b'], null, null)).to.equal(['a', 'b']);
     expect(Utilities.replaceValue(['a', 'b'], 'a', null)).to.equal(['a', 'b']);
     expect(Utilities.replaceValue(null, null, null)).to.equal(null);
@@ -153,9 +175,31 @@ lab.experiment('utilities', () => {
     ).to.equal(true);
   });
 
+  lab.test('hasJoiDescription', () => {
+    expect(Utilities.hasJoiDescription({})).to.equal(false);
+    expect(Utilities.hasJoiDescription(Joi.object())).to.equal(false);
+    expect(Utilities.hasJoiDescription(Joi.object().description('MyDescription'))).to.equal(true);
+    expect(
+      Utilities.hasJoiDescription(
+        Joi.object({
+          id: Joi.string()
+        })
+      )
+    ).to.equal(false);
+    expect(
+      Utilities.hasJoiDescription(
+        Joi.object({
+          id: Joi.string()
+        }).description('testDescription')
+      )
+    ).to.equal(true);
+  });
+
   lab.test('toJoiObject', () => {
-    expect(Joi.isSchema(Utilities.toJoiObject({}))).to.equal(true)
-    expect(Joi.isSchema(Utilities.toJoiObject(Joi.object()))).to.equal(true)
+    expect(Joi.isSchema(Utilities.toJoiObject([]))).to.equal(false);
+    expect(Joi.isSchema(Utilities.toJoiObject(Object.create(null)))).to.equal(true);
+    expect(Joi.isSchema(Utilities.toJoiObject({}))).to.equal(true);
+    expect(Joi.isSchema(Utilities.toJoiObject(Joi.object()))).to.equal(true);
   });
 
   lab.test('hasJoiMeta', () => {
@@ -171,9 +215,41 @@ lab.experiment('utilities', () => {
     expect(Utilities.getJoiMetaProperty(Joi.object().meta({ test: 'test' }), 'nomatch')).to.equal(undefined);
   });
 
+  lab.test('getJoiLabel', () => {
+    expect(Utilities.getJoiLabel({})).to.equal(null);
+    expect(Utilities.getJoiLabel(Joi.object())).to.equal(null);
+    expect(Utilities.getJoiLabel(Joi.object().label('MySchema'))).to.equal('MySchema');
+
+    expect(
+      Utilities.getJoiLabel(
+        Joi.object({
+          id: Joi.string()
+        })
+      )
+    ).to.equal(null);
+
+    expect(
+      Utilities.getJoiLabel(
+        Joi.object({
+          id: Joi.string()
+        }).description('MyDescription')
+      )
+    ).to.equal(null);
+
+    expect(
+      Utilities.getJoiLabel(
+        Joi.object({
+          id: Joi.string()
+        }).description('testDescription').label('MyLabel')
+      )
+    ).to.equal('MyLabel');
+  });
+
   lab.test('toTitleCase', () => {
     expect(Utilities.toTitleCase('test')).to.equal('Test');
     expect(Utilities.toTitleCase('tesT')).to.equal('Test');
+    expect(Utilities.toTitleCase('Test')).to.equal('Test');
+    expect(Utilities.toTitleCase('test Test')).to.equal('Test test');
   });
 
   lab.test('createId', () => {
@@ -201,6 +277,13 @@ lab.experiment('utilities', () => {
     expect(Utilities.replaceInPath('api/users.search', ['groups'], pathReplacements)).to.equal('api/users');
   });
 
+  lab.test('removeTrailingSlash', () => {
+    expect(Utilities.removeTrailingSlash('api/v1/users')).to.equal('api/v1/users');
+    expect(Utilities.removeTrailingSlash('api/v1/users/')).to.equal('api/v1/users');
+    expect(Utilities.removeTrailingSlash('/api/v1/users')).to.equal('/api/v1/users');
+    expect(Utilities.removeTrailingSlash('/api/v1/users/')).to.equal('/api/v1/users');
+  });
+
   lab.test('mergeVendorExtensions', () => {
     expect(Utilities.assignVendorExtensions({ a: 1, b: 2 }, { 'x-a': 1, 'x-b': 2, c: 3 })).to.equal({
       a: 1,
@@ -224,5 +307,16 @@ lab.experiment('utilities', () => {
       'x-b': 2
     });
     expect(Utilities.assignVendorExtensions({ a: 1, b: 2 }, { 'x-': 1 })).to.equal({ a: 1, b: 2 });
+  });
+
+
+  lab.test('appendQueryString', () => {
+    expect(Utilities.appendQueryString('/test.json', 'tags', 'reduced')).to.equal('/test.json?tags=reduced');
+    expect(Utilities.appendQueryString('/test/test', 'tags', 'reduced')).to.equal('/test/test?tags=reduced');
+    expect(Utilities.appendQueryString('/test/test?tags=reduced', 'tags', 'reduced')).to.equal('/test/test?tags=reduced');
+    expect(Utilities.appendQueryString('/test/test?tags=reduced', 'tags', 'api')).to.equal('/test/test?tags=api');
+    expect(Utilities.appendQueryString('/swagger.json')).to.equal('/swagger.json');
+    expect(Utilities.appendQueryString('/swagger.json', 'query')).to.equal('/swagger.json');
+    expect(Utilities.appendQueryString('/swagger.json', '', 'query')).to.equal('/swagger.json');
   });
 });

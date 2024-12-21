@@ -6,37 +6,10 @@ const Blipp = require('blipp');
 const Hapi = require('@hapi/hapi');
 const Inert = require('@hapi/inert');
 const Vision = require('@hapi/vision');
-const Good = require('@hapi/good');
 
 const HapiSwagger = require('../');
 const Pack = require('../package');
 const Routes = require('./assets/routes-simple');
-
-const goodOptions = {
-  ops: {
-    interval: 1000
-  },
-  reporters: {
-    myConsoleReporter: [
-      {
-        module: '@hapi/good-squeeze',
-        name: 'Squeeze',
-        args: [
-          {
-            log: '*',
-            response: {
-              exclude: ['no-logging']
-            }
-          }
-        ]
-      },
-      {
-        module: 'good-console'
-      },
-      'stdout'
-    ]
-  }
-};
 
 const swaggerOptions = {
   documentationPage: false,
@@ -57,13 +30,13 @@ const swaggerOptions = {
     title: 'Test API Documentation',
     description: 'This is a sample example of API documentation.',
     version: Pack.version,
-    termsOfService: 'https://github.com/glennjones/hapi-swagger/',
+    termsOfService: 'https://github.com/hapi-swagger/hapi-swagger/',
     contact: {
       email: 'glennjonesnet@gmail.com'
     },
     license: {
       name: 'MIT',
-      url: 'https://raw.githubusercontent.com/glennjones/hapi-swagger/master/license.txt'
+      url: 'https://raw.githubusercontent.com/hapi-swagger/hapi-swagger/master/license.txt'
     }
   },
   tags: [
@@ -93,15 +66,11 @@ const ser = async () => {
     port: 3000
   });
 
-  // Blipp and Good - Needs updating for Hapi v17.x
+  // Blipp - Needs updating for Hapi v17.x
   await server.register([
     Inert,
     Vision,
     Blipp,
-    {
-      plugin: Good,
-      options: goodOptions
-    },
     {
       plugin: HapiSwagger,
       options: swaggerOptions

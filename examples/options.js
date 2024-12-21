@@ -12,32 +12,6 @@ const HapiSwagger = require('../');
 const Pack = require('../package');
 const Routes = require('./assets/routes-complex.js');
 
-/*
-const goodOptions = {
-    ops: {
-        interval: 1000
-    },
-    reporters: {
-        console: [
-            {
-                module: '@hapi/good-squeeze',
-                name: 'Squeeze',
-                args: [
-                    {
-                        log: '*',
-                        response: '*'
-                    }
-                ]
-            },
-            {
-                module: 'good-console'
-            },
-            'stdout'
-        ]
-    }
-};
-*/
-
 const swaggerOptions = {
   basePath: '/v1',
   pathPrefixSize: 2,
@@ -45,13 +19,13 @@ const swaggerOptions = {
     title: 'Test API Documentation',
     description: 'This is a sample example of API documentation.',
     version: Pack.version,
-    termsOfService: 'https://github.com/glennjones/hapi-swagger/',
+    termsOfService: 'https://github.com/hapi-swagger/hapi-swagger/',
     contact: {
       email: 'glennjonesnet@gmail.com'
     },
     license: {
       name: 'MIT',
-      url: 'https://raw.githubusercontent.com/glennjones/hapi-swagger/master/license.txt'
+      url: 'https://raw.githubusercontent.com/hapi-swagger/hapi-swagger/master/license.txt'
     }
   },
   tags: [
@@ -121,7 +95,7 @@ const ser = async () => {
     }
   });
 
-  // Blipp and Good - Needs updating for Hapi v17.x
+  // Blipp - Needs updating for Hapi v17.x
   await server.register([
     Inert,
     Vision,

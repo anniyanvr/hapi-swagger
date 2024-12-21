@@ -35,14 +35,14 @@ lab.experiment('child-models', () => {
             })
           })
         },
-        handler: function() {}
+        handler: function () {}
       }
     },
     {
       path: '/bar/objects',
       method: 'POST',
       options: {
-        handler: function() {},
+        handler: function () {},
         tags: ['api'],
         response: {
           schema: Joi.object()
@@ -72,7 +72,7 @@ lab.experiment('child-models', () => {
       path: '/bar/arrays',
       method: 'POST',
       options: {
-        handler: function() {},
+        handler: function () {},
         tags: ['api'],
         response: {
           schema: Joi.array()

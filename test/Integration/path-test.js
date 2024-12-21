@@ -19,14 +19,9 @@ lab.experiment('path', () => {
       tags: ['api'],
       validate: {
         payload: Joi.object({
-          a: Joi.number()
-            .required()
-            .description('the first number')
-            .default(10),
+          a: Joi.number().required().description('the first number').default(10),
 
-          b: Joi.number()
-            .required()
-            .description('the second number'),
+          b: Joi.number().required().description('the second number'),
 
           operator: Joi.string()
             .required()
@@ -34,9 +29,7 @@ lab.experiment('path', () => {
             .valid('+', '-', '/', '*')
             .description('the operator i.e. + - / or *'),
 
-          equals: Joi.number()
-            .required()
-            .description('the result of the sum')
+          equals: Joi.number().required().description('the result of the sum')
         })
       }
     }
@@ -155,9 +148,7 @@ lab.experiment('path', () => {
 
     testRoutes.options.validate = {
       payload: Joi.object({
-        file: Joi.any()
-          .meta({ swaggerType: 'file' })
-          .description('json file')
+        file: Joi.any().meta({ swaggerType: 'file' }).description('json file')
       })
     };
     const server = await Helper.createServer({}, testRoutes);
@@ -170,9 +161,7 @@ lab.experiment('path', () => {
     const testRoutes = Hoek.clone(routes);
     testRoutes.options.validate = {
       payload: Joi.object({
-        file: Joi.any()
-          .meta({ swaggerType: 'file' })
-          .description('json file')
+        file: Joi.any().meta({ swaggerType: 'file' }).description('json file')
       })
     };
 
@@ -211,7 +200,11 @@ lab.experiment('path', () => {
   lab.test('a user set content-type header removes consumes', async () => {
     const testRoutes = Hoek.clone(routes);
     testRoutes.options.validate.headers = Joi.object({
-      'content-type': Joi.string().valid('application/json', 'application/json;charset=UTF-8', 'application/json; charset=UTF-8')
+      'content-type': Joi.string().valid(
+        'application/json',
+        'application/json;charset=UTF-8',
+        'application/json; charset=UTF-8'
+      )
     }).unknown();
 
     const server = await Helper.createServer({}, testRoutes);
@@ -241,9 +234,7 @@ lab.experiment('path', () => {
   lab.test('accept header', async () => {
     const testRoutes = Hoek.clone(routes);
     testRoutes.options.validate.headers = Joi.object({
-      accept: Joi.string()
-        .required()
-        .valid('application/json', 'application/vnd.api+json')
+      accept: Joi.string().required().valid('application/json', 'application/vnd.api+json')
     }).unknown();
 
     const server = await Helper.createServer({}, testRoutes);
@@ -257,9 +248,7 @@ lab.experiment('path', () => {
   lab.test('accept header - no emum', async () => {
     const testRoutes = Hoek.clone(routes);
     testRoutes.options.validate.headers = Joi.object({
-      accept: Joi.string()
-        .required()
-        .default('application/vnd.api+json')
+      accept: Joi.string().required().default('application/vnd.api+json')
     }).unknown();
 
     const server = await Helper.createServer({}, testRoutes);
@@ -325,10 +314,7 @@ lab.experiment('path', () => {
     testRoutes.path = '/servers/{id}/{note?}';
     testRoutes.options.validate = {
       params: Joi.object({
-        id: Joi.number()
-          .integer()
-          .required()
-          .description('ID of server to delete'),
+        id: Joi.number().integer().required().description('ID of server to delete'),
         note: Joi.string().description('Note..')
       })
     };
@@ -435,10 +421,7 @@ lab.experiment('path', () => {
     testRoutes.path = '/v3/servers/{id}';
     testRoutes.options.validate = {
       params: Joi.object({
-        id: Joi.number()
-          .integer()
-          .required()
-          .description('ID of server to delete')
+        id: Joi.number().integer().required().description('ID of server to delete')
       })
     };
 
@@ -453,10 +436,7 @@ lab.experiment('path', () => {
     testRoutes.path = '/v3/servers/{id}';
     testRoutes.options.validate = {
       params: Joi.object({
-        id: Joi.number()
-          .integer()
-          .required()
-          .description('ID of server to delete')
+        id: Joi.number().integer().required().description('ID of server to delete')
       })
     };
 
@@ -471,10 +451,7 @@ lab.experiment('path', () => {
     testRoutes.path = '/api/v3/servers/{id}';
     testRoutes.options.validate = {
       params: Joi.object({
-        id: Joi.number()
-          .integer()
-          .required()
-          .description('ID of server to delete')
+        id: Joi.number().integer().required().description('ID of server to delete')
       })
     };
 
@@ -560,7 +537,7 @@ lab.experiment('path', () => {
     expect(isValid).to.be.true();
   });
 
-  lab.test('stop emtpy objects creating parameter', async () => {
+  lab.test('stop empty objects creating parameter', async () => {
     const testRoutes = {
       method: 'POST',
       path: '/{name}',
@@ -591,7 +568,7 @@ lab.experiment('path', () => {
     expect(isValid).to.be.false();
   });
 
-  lab.test('stop emtpy formData object creating parameter', async () => {
+  lab.test('stop empty formData object creating parameter', async () => {
     const testRoutes = {
       method: 'POST',
       path: '/',
@@ -616,5 +593,27 @@ lab.experiment('path', () => {
 
     const isValid = await Validate.test(response.result);
     expect(isValid).to.be.true();
+  });
+
+  lab.test('check if the property is hidden and swagger ui is visible', async () => {
+    const testRoutes = {
+      method: 'Get',
+      path: '/todo/{id}/',
+      options: {
+        handler: () => {},
+        tags: ['api'],
+        validate: {
+          params: Joi.object({
+            id: Joi.number().required().description('the id for the todo item'),
+            hidden: Joi.number().required().description('hidden item').meta({ swaggerHidden: true }),
+            isVisible: Joi.boolean().required().description('must be visible on ui')
+          })
+        }
+      }
+    };
+
+    const server = await Helper.createServer({}, testRoutes);
+    const response = await server.inject({ method: 'GET', url: '/swagger.json' });
+    expect(response.statusCode).to.equal(200);
   });
 });
